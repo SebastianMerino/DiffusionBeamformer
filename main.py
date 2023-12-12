@@ -11,7 +11,7 @@ from model import UNETv4
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r".\weights"
+    save_dir = r'.\weights'
 
     # training hyperparameters
     batch_size = 16
@@ -38,6 +38,7 @@ def main():
     # Model and optimizer
     nn_model = UNETv4(in_channels=3, out_channels=1)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
+    loss_arr = np.array()
 
     # Training
     nn_model.train()
@@ -70,7 +71,7 @@ def main():
         if ep % 1 == 0 or ep == int(n_epoch - 1):
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
-            torch.save(nn_model.state_dict(), save_dir + f"model_{ep}.pth")
+            torch.save(nn_model.state_dict(), save_dir + f"\\model_{ep}.pth")
             print('saved model at ' + save_dir + f"model_{ep}.pth")
 
 
