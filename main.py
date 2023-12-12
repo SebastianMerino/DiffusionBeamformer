@@ -14,25 +14,25 @@ def main():
     save_dir = r'.\weights'
 
     # training hyperparameters
-    batch_size = 4  # 4 for testing, 16 for training
+    batch_size = 32  # 4 for testing, 16 for training
     n_epoch = 50
     l_rate = 1e-5
 
     # Loading Data
-    # input_folder = r'C:\Users\smerino.C084288\Documents\simulatedCystDataset\downs800_0.0Att\input_id'
-    # output_folder = r'C:\Users\smerino.C084288\Documents\simulatedCystDataset\downs800_0.0Att\target_enh'
-    input_folder = r'C:\Users\sebas\Documents\MATLAB\DataProCiencia\Attenuation\DiffusionBeamformer\input_id'
-    output_folder = r'C:\Users\sebas\Documents\MATLAB\DataProCiencia\Attenuation\DiffusionBeamformer\target_enh'
+    input_folder = r'C:\Users\smerino.C084288\Documents\simulatedCystDataset\downs800_0.0Att\input_id'
+    output_folder = r'C:\Users\smerino.C084288\Documents\simulatedCystDataset\downs800_0.0Att\target_enh'
+    # input_folder = r'C:\Users\sebas\Documents\MATLAB\DataProCiencia\Attenuation\DiffusionBeamformer\input_id'
+    # output_folder = r'C:\Users\sebas\Documents\MATLAB\DataProCiencia\Attenuation\DiffusionBeamformer\target_enh'
     dataset = CustomDataset(input_folder, output_folder)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     print(f'Dataloader length: {len(train_loader)}')
 
     # DDPM noise schedule
-    timesteps = 500
+    time_steps = 500
     beta1 = 1e-4
     beta2 = 0.02
-    b_t = (beta2 - beta1) * torch.linspace(0, 1, timesteps + 1, device=device) + beta1
+    b_t = (beta2 - beta1) * torch.linspace(0, 1, time_steps + 1, device=device) + beta1
     a_t = 1 - b_t
     ab_t = torch.cumsum(a_t.log(), dim=0).exp()
     ab_t[0] = 1
@@ -55,7 +55,7 @@ def main():
 
             # perturb data
             noise = torch.randn_like(y)
-            t = torch.randint(1, timesteps + 1, (x.shape[0],)).to(device)
+            t = torch.randint(1, time_steps + 1, (x.shape[0],)).to(device)
             y_pert = perturb_input(y, ab_t[t], noise)
             input_model = torch.cat((x, y_pert), 1)
 
