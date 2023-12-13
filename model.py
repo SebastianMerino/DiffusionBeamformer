@@ -116,3 +116,48 @@ class UNETv4(nn.Module):
             x = self.ups[idx](concat_skip, t)  # Double convs
 
         return self.final_block(x)
+    
+
+class UNETv5(nn.Module):
+    def __init__(
+            self, in_channels=3, out_channels=1, features=[64, 128, 256, 512],
+    ):
+        super(UNETv5, self).__init__()
+        self.ups = nn.ModuleList()
+        self.downs = nn.ModuleList()
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.upConvs = nn.ModuleList()
+
+        self.initial_block = DoubleConv(in_channels, features[0])
+
+        # Down part of UNET
+        for feature in features:
+            self.downs.append(DoubleConv(feature, feature * 2))
+
+        # Up part of UNET
+        for feature in reversed(features):
+            self.upConvs.append(
+                nn.ConvTranspose2d(feature * 2, feature, kernel_size=2, stride=2))
+            self.ups.append(DoubleConv(feature * 2, feature))
+
+        self.final_block = nn.Conv2d(features[0], out_channels, kernel_size=1)
+
+    def forward(self, x, t):
+
+        x = self.initial_block(x, t)
+
+        # Convolutional layers and max-pooling
+        skip_connections = []
+        for down in self.downs:
+            skip_connections.append(x)
+            x = self.pool(x)
+            x = down(x, t)
+
+        # Convolutional layers and up-sampling
+        skip_connections = skip_connections[::-1]  # Reversing list
+        for idx in range(len(self.ups)):
+            x = self.upConvs[idx](x)  # UpConvolution
+            concat_skip = torch.cat((skip_connections[idx], x), dim=1)
+            x = self.ups[idx](concat_skip, t)  # Double convs
+
+        return self.final_block(x)
