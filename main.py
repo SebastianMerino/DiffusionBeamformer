@@ -40,11 +40,17 @@ def main():
     # Model and optimizer
     nn_model = UNETv5(in_channels=3, out_channels=1)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
-    loss_arr = []
+
+    trained_epochs = 5
+    if trained_epochs > 0:
+        nn_model.load_state_dict(torch.load(f"{save_dir}\\model_{trained_epochs}.pth", map_location=device))  # From last model
+        loss_arr = np.load(f"{save_dir}\\loss_{trained_epochs}.npy").tolist()  # From last model
+    else:
+        loss_arr = []
 
     # Training
     nn_model.train()
-    for ep in range(n_epoch):
+    for ep in range(trained_epochs+1,n_epoch):
         print(f' Epoch {ep}/{n_epoch}')
 
         pbar = tqdm(train_loader, mininterval=2)
@@ -69,7 +75,7 @@ def main():
 
             optim.step()
 
-        # save model every 1 epochs
+        # save model every 1 epoch
         if ep % 1 == 0 or ep == int(n_epoch - 1):
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
