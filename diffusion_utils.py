@@ -7,9 +7,10 @@ import torch
 import os
 
 def perturb_input(x, ab_t, noise):
-    """ Perturbs an image to a specified noise level """
+    """ Perturbs an image to a specified noise level
+     CORRECTION: a sqrt was missing on the noise term """
     ab_t_unsq = ab_t.unsqueeze(1).unsqueeze(1).unsqueeze(1)
-    return ab_t_unsq.sqrt() * x + (1 - ab_t_unsq) * noise
+    return ab_t_unsq.sqrt() * x + (1 - ab_t_unsq).sqrt() * noise
 
 
 def plot_sample(input_us, output_us):
