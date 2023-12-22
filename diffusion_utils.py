@@ -45,7 +45,7 @@ def animate_reverse_process(intermediate):
         current_ax = axs[iSample//2][iSample%2]
         current_ax.set_title(f'Sample {iSample}')
         artist_im = current_ax.imshow(intermediate[0,iSample,0,:,:], extent=[-20,20,50,0], cmap='gray')
-        artist_im.set_clim(0,1)
+        artist_im.set_clim(-1,1)
         plt.colorbar(mappable=artist_im,ax=current_ax)
     plt.tight_layout()
 
@@ -73,7 +73,7 @@ def plot_minibatch(samples, title="Sample"):
     fig, axs = plt.subplots(2, 2, figsize=(6, 6))
     for iSample in range(4):
         im = axs[iSample//2][iSample%2].imshow(samples[iSample,0,:,:], extent=[-20,20,50,0],cmap='gray')
-        # im.set_clim(-10,10)
+        im.set_clim(-1,1)
         axs[iSample//2][iSample%2].set_title(f'{title} {iSample}')
         plt.colorbar(mappable=im,ax=axs[iSample//2][iSample%2])
     plt.tight_layout()

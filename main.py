@@ -15,7 +15,7 @@ def main():
 
     # training hyperparameters
     batch_size = 4  # 4 for testing, 16 for training
-    n_epoch = 1000
+    n_epoch = 100
     l_rate = 1e-5  # changing from 1e-5 to 1e-6
 
     # Loading Data
@@ -23,7 +23,7 @@ def main():
     # output_folder = r'C:\Users\smerino.C084288\Documents\simulatedCystDataset\downs800_0.0Att\target_enh'
     input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
     output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
-    dataset = CustomDataset(input_folder, output_folder)
+    dataset = CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     print(f'Dataloader length: {len(train_loader)}')
@@ -50,14 +50,11 @@ def main():
 
     # Training
     nn_model.train()
-    pbar = tqdm(range(trained_epochs+1,n_epoch+1), mininterval=2)
-    for ep in pbar:
-        # print(f' Epoch {ep}/{n_epoch}')
-        # linearly decay learning rate
-        optim.param_groups[0]['lr'] = l_rate*(0.1)**(ep/100)
-
-        # pbar = tqdm(train_loader, mininterval=2)
-        for x, y in train_loader:  # x: images
+    # pbar = tqdm(range(trained_epochs+1,n_epoch+1), mininterval=2)
+    for ep in range(trained_epochs+1,n_epoch+1):
+        print(f' Epoch {ep}/{n_epoch}')
+        pbar = tqdm(train_loader, mininterval=2)
+        for x, y in pbar:  # x: images
             optim.zero_grad()
             x = x.to(device)
             y = y.to(device)
@@ -79,7 +76,7 @@ def main():
             optim.step()
 
         # save model every x epochs
-        if ep % 100 == 0 or ep == int(n_epoch - 1):
+        if ep % 10 == 0 or ep == int(n_epoch - 1):
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
             torch.save(nn_model.state_dict(), save_dir + f"\\model_{ep}.pth")
