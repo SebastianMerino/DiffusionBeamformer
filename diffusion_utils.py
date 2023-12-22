@@ -2,6 +2,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 from IPython.display import HTML
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
+from torchvision import transforms
 import numpy as np
 import torch
 import os
@@ -12,16 +13,22 @@ def perturb_input(x, ab_t, noise):
     ab_t_unsq = ab_t.unsqueeze(1).unsqueeze(1).unsqueeze(1)
     return ab_t_unsq.sqrt() * x + (1 - ab_t_unsq).sqrt() * noise
 
+def denoise_ddim(x, ab, ab_prev, pred_noise):   
+    """ define sampling function for DDIM, removes the noise using ddim """ 
+    x0_pred = ab_prev.sqrt() / ab.sqrt() * (x - (1 - ab).sqrt() * pred_noise)
+    dir_xt = (1 - ab_prev).sqrt() * pred_noise
+
+    return x0_pred + dir_xt
 
 def plot_sample(input_us, output_us):
     fig, axs = plt.subplots(1, 3, figsize=(12, 3))
     im0 = axs[0].imshow(input_us[0, :, :], cmap='gray', extent=[-20,20,50,0])
-    im0.set_clim(-0.1,0.1)
+    im0.set_clim(-1,1)
     axs[0].set_title('I')
     plt.colorbar(mappable=im0,ax=axs[0])
 
     im1 = axs[1].imshow(input_us[1, :, :], cmap='gray', extent=[-20,20,50,0]) 
-    im1.set_clim(-0.1,0.1)
+    im1.set_clim(-1,1)
     axs[1].set_title('Q') 
     plt.colorbar(mappable=im1,ax=axs[1])
 
@@ -74,10 +81,12 @@ def plot_minibatch(samples, title="Sample"):
 
 
 class CustomDataset(Dataset):
-    def __init__(self, input_folder, output_folder, transform=None):
+    def __init__(self, input_folder, output_folder, transform=True):
         self.input_folder = input_folder
         self.output_folder = output_folder
         self.transform = transform
+        self.transform_input = transforms.Normalize([0,0],[0.1172,0.1172])
+        self.transform_output = transforms.Lambda(lambda t: (t * 2) - 1)
         self.input_file_list = sorted(os.listdir(input_folder))
         self.output_file_list = sorted(os.listdir(output_folder))
 
@@ -96,6 +105,6 @@ class CustomDataset(Dataset):
         y = y.unsqueeze(0)
 
         if self.transform:
-            x = self.transform(x)
-            y = self.transform(y)
+            x = self.transform_input(x)
+            y = self.transform_output(y)
         return x, y
