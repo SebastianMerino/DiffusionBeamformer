@@ -20,6 +20,18 @@ def denoise_ddim(x, ab, ab_prev, pred_noise):
 
     return x0_pred + dir_xt
 
+def linear_time_schedule(time_steps, beta1, beta2, device):
+    b_t = (beta2 - beta1) * torch.linspace(0, 1, time_steps + 1, device=device) + beta1
+    a_t = 1 - b_t
+    ab_t = torch.cumsum(a_t.log(), dim=0).exp()
+    ab_t[0] = 1
+    return ab_t
+
+def simple_time_schedule(time_steps, device):
+    ab_t =  1 - torch.linspace(0, 1, time_steps + 1, device=device)
+    return ab_t
+
+
 def plot_sample(input_us, output_us):
     fig, axs = plt.subplots(1, 3, figsize=(12, 3))
     im0 = axs[0].imshow(input_us[0, :, :], cmap='gray', extent=[-20,20,50,0])
