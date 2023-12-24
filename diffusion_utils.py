@@ -72,7 +72,7 @@ def animate_reverse_process(intermediate):
 def plot_minibatch(samples, title="Sample"):
     fig, axs = plt.subplots(2, 2, figsize=(6, 6))
     for iSample in range(4):
-        im = axs[iSample//2][iSample%2].imshow(samples[iSample,0,:,:], extent=[-20,20,50,0],cmap='gray')
+        im = axs[iSample//2][iSample%2].imshow(samples[iSample,0,:,:].to('cpu'), extent=[-20,20,50,0],cmap='gray')
         im.set_clim(-1,1)
         axs[iSample//2][iSample%2].set_title(f'{title} {iSample}')
         plt.colorbar(mappable=im,ax=axs[iSample//2][iSample%2])

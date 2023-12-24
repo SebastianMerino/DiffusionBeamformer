@@ -4,6 +4,7 @@ from tqdm import tqdm
 import numpy as np
 from torch.utils.data import DataLoader
 from diffusion_utils import *
+from datetime import datetime
 import torch.nn.functional as func
 from model import UNETv5
 
@@ -11,27 +12,27 @@ from model import UNETv5
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights'
+    save_dir = r'.\weights_v2'
 
     # training hyperparameters
-    batch_size = 4  # 4 for testing, 16 for training
-    n_epoch = 100
-    l_rate = 1e-5  # changing from 1e-5 to 1e-6
+    batch_size = 8  # 4 for testing, 16 for training
+    n_epoch = 200
+    l_rate = 1e-7  # changing from 1e-5 to 1e-6
 
     # Loading Data
     # input_folder = r'C:\Users\smerino.C084288\Documents\simulatedCystDataset\downs800_0.0Att\input_id'
     # output_folder = r'C:\Users\smerino.C084288\Documents\simulatedCystDataset\downs800_0.0Att\target_enh'
-    input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
-    output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
+    input_folder = r'C:\Users\u_imagenes\Documents\smerino\input'
+    output_folder = r'C:\Users\u_imagenes\Documents\smerino\target_enh'
     dataset = CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     print(f'Dataloader length: {len(train_loader)}')
 
     # DDPM noise schedule
-    time_steps = 500
-    beta1 = 1e-4
-    beta2 = 0.02
+    time_steps = 50
+    beta1 = 1e-4*10
+    beta2 = 0.02*10
     b_t = (beta2 - beta1) * torch.linspace(0, 1, time_steps + 1, device=device) + beta1
     a_t = 1 - b_t
     ab_t = torch.cumsum(a_t.log(), dim=0).exp()
@@ -51,10 +52,10 @@ def main():
     # Training
     nn_model.train()
     # pbar = tqdm(range(trained_epochs+1,n_epoch+1), mininterval=2)
-    for ep in range(trained_epochs+1,n_epoch+1):
-        print(f' Epoch {ep}/{n_epoch}')
-        pbar = tqdm(train_loader, mininterval=2)
-        for x, y in pbar:  # x: images
+    for ep in range(trained_epochs+1, n_epoch+1):
+        print(f' Epoch {ep}/{n_epoch}, {datetime.now()}')
+        # pbar = tqdm(train_loader, mininterval=2)
+        for x, y in train_loader:  # x: images
             optim.zero_grad()
             x = x.to(device)
             y = y.to(device)
@@ -81,7 +82,7 @@ def main():
                 os.mkdir(save_dir)
             torch.save(nn_model.state_dict(), save_dir + f"\\model_{ep}.pth")
             np.save(save_dir + f"\\loss_{ep}.npy", np.array(loss_arr))
-            print("Saved model and loss")
+            # print("Saved model and loss")
 
 
 if __name__ == '__main__':
