@@ -71,8 +71,9 @@ class DoubleConv(nn.Module):
         x = x + self.time_mlp(t)
         x = self.conv2(x)
         if self.residual:
-            # If not, apply a 1x1 convolutional layer to match dimensions before adding residual connection
+            # Apply a 1x1 convolutional layer to match dimensions before adding residual connection
             x = self.shortcut(x0) + x
+            x /= math.sqrt(2)
         return x    
 
 class UNETv6(nn.Module):
