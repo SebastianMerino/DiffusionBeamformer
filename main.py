@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from diffusion_utils import *
 from datetime import datetime
 import torch.nn.functional as func
-from model2 import UNETv6
+from model2 import UNETv6, UNETv7
 
 
 def main():
@@ -31,7 +31,11 @@ def main():
 
     # DDPM noise schedule
     time_steps = 100
-    ab_t = simple_time_schedule(time_steps,device=device)
+    # ab_t = simple_time_schedule(time_steps,device=device)
+    beta1 = 1e-4*5
+    beta2 = 0.02*5
+    ab_t = linear_time_schedule(time_steps,beta1=beta1,beta2=beta2,device=device)
+
 
     # Model and optimizer
     nn_model = UNETv6(in_channels=3, out_channels=1).to(device)
