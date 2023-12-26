@@ -12,7 +12,9 @@ from model2 import UNETv6, UNETv7
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v3'
+    save_dir = r'.\weights_v6'
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
 
     # training hyperparameters
     batch_size = 8  # 4 for testing, 16 for training
@@ -35,7 +37,6 @@ def main():
     beta1 = 1e-4*5
     beta2 = 0.02*5
     ab_t = linear_time_schedule(time_steps,beta1=beta1,beta2=beta2,device=device)
-
 
     # Model and optimizer
     nn_model = UNETv6(in_channels=3, out_channels=1).to(device)
@@ -76,9 +77,7 @@ def main():
             optim.step()
 
         # save model every x epochs
-        if ep % 10 == 0 or ep == int(n_epoch - 1):
-            if not os.path.exists(save_dir):
-                os.mkdir(save_dir)
+        if ep % 20 == 0 or ep == int(n_epoch - 1):
             torch.save(nn_model.state_dict(), save_dir + f"\\model_{ep}.pth")
             np.save(save_dir + f"\\loss_{ep}.npy", np.array(loss_arr))
             # print("Saved model and loss")
