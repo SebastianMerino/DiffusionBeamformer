@@ -12,7 +12,7 @@ from model2 import UNETv6, UNETv7
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_overfitted'
+    save_dir = r'.\weights_v3'
 
     # training hyperparameters
     batch_size = 8  # 4 for testing, 16 for training
