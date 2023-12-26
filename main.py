@@ -12,7 +12,7 @@ from model2 import UNETv6
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_overfitted'
+    save_dir = r'.\weights_v3'
 
     # training hyperparameters
     batch_size = 8  # 4 for testing, 16 for training
@@ -31,7 +31,7 @@ def main():
 
     # DDPM noise schedule
     time_steps = 100
-    ab_t = simple_time_schedule(time_steps,device=device)
+    ab_t = simple_time_schedule(time_steps, device=device)
 
     # Model and optimizer
     nn_model = UNETv6(in_channels=3, out_channels=1).to(device)
