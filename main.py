@@ -34,9 +34,9 @@ def main():
     # DDPM noise schedule
     time_steps = 500
     # ab_t = simple_time_schedule(time_steps,device=device)
-    #beta1 = 1e-4*5
-    #beta2 = 0.02*5
-    #ab_t = linear_time_schedule(time_steps, beta1=beta1, beta2=beta2, device=device)
+    # beta1 = 1e-4*5
+    # beta2 = 0.02*5
+    # ab_t = linear_time_schedule(time_steps, beta1=beta1, beta2=beta2, device=device)
     ab_t = cosine_time_schedule(time_steps, s=0.008, device=device)
 
     # Model and optimizer

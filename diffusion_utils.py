@@ -33,9 +33,9 @@ def simple_time_schedule(time_steps, device):
     return ab_t
 
 def cosine_time_schedule(time_steps,s,device):
-    t = torch.arange(time_steps).to(device)
+    t = torch.arange(time_steps+1, device=device)
     ab_t = torch.cos((t / time_steps + s) / (1 + s) * math.pi / 2) ** 2
-    return ab_t
+    return ab_t.to(device)
 
 def plot_sample(input_us, output_us):
     fig, axs = plt.subplots(1, 3, figsize=(12, 3))
