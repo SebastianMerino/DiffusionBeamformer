@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 import numpy as np
 import torch
+import math
 import os
 
 def perturb_input(x, ab_t, noise):
@@ -31,6 +32,10 @@ def simple_time_schedule(time_steps, device):
     ab_t =  1 - torch.linspace(0, 1, time_steps + 1, device=device)
     return ab_t
 
+def cosine_time_schedule(time_steps,s,device):
+    t = torch.arange(time_steps).to(device)
+    ab_t = torch.cos((t / time_steps + s) / (1 + s) * math.pi / 2) ** 2
+    return ab_t
 
 def plot_sample(input_us, output_us):
     fig, axs = plt.subplots(1, 3, figsize=(12, 3))

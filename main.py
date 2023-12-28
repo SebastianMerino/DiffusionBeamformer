@@ -12,12 +12,12 @@ from model2 import UNETv6, UNETv7
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v6'
+    save_dir = r'.\weights_v8'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
     # training hyperparameters
-    batch_size = 8  # 4 for testing, 16 for training
+    batch_size = 4  # 4 for testing, 16 for training
     n_epoch = 200
     l_rate = 1e-7  # changing from 1e-5 to 1e-6
 
@@ -32,14 +32,15 @@ def main():
     print(f'Dataloader length: {len(train_loader)}')
 
     # DDPM noise schedule
-    time_steps = 100
+    time_steps = 500
     # ab_t = simple_time_schedule(time_steps,device=device)
-    beta1 = 1e-4*5
-    beta2 = 0.02*5
-    ab_t = linear_time_schedule(time_steps,beta1=beta1,beta2=beta2,device=device)
+    #beta1 = 1e-4*5
+    #beta2 = 0.02*5
+    #ab_t = linear_time_schedule(time_steps, beta1=beta1, beta2=beta2, device=device)
+    ab_t = cosine_time_schedule(time_steps, s=0.008, device=device)
 
     # Model and optimizer
-    nn_model = UNETv6(in_channels=3, out_channels=1).to(device)
+    nn_model = UNETv7(in_channels=3, out_channels=1).to(device)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
     trained_epochs = 0
@@ -47,13 +48,16 @@ def main():
         nn_model.load_state_dict(torch.load(f"{save_dir}\\model_{trained_epochs}.pth", map_location=device))  # From last model
         loss_arr = np.load(f"{save_dir}\\loss_{trained_epochs}.npy").tolist()  # From last model
     else:
-        loss_arr = [1.5]
+        loss_arr = []
 
     # Training
     nn_model.train()
     # pbar = tqdm(range(trained_epochs+1,n_epoch+1), mininterval=2)
     for ep in range(trained_epochs+1, n_epoch+1):
-        print(f' Epoch {ep:03}/{n_epoch}, , loss: {loss_arr[-1]:.2f}, {datetime.now()}')
+        if loss_arr:
+            print(f' Epoch {ep:03}/{n_epoch}, loss: {loss_arr[-1]:.2f}, {datetime.now()}')
+        else:
+            print(f' Epoch {ep:03}/{n_epoch}, {datetime.now()}')
         # pbar = tqdm(train_loader, mininterval=2)
         for x, y in train_loader:  # x: images
             optim.zero_grad()
