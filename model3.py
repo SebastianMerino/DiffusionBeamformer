@@ -103,7 +103,7 @@ class UNETv9(nn.Module):
     def __init__(
             self, in_channels=3, out_channels=1, features=[64, 128, 256, 512], emb_dim=32
         ):
-        super(UNETv8, self).__init__()
+        super(UNETv9, self).__init__()
         self.initial_block = DoubleConv(in_channels, features[0], residual=True)
         self.time_mlp = nn.Sequential(
             SinusoidalPositionEmbeddings(emb_dim),
