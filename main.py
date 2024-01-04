@@ -6,8 +6,7 @@ from torch.utils.data import DataLoader
 from diffusion_utils import *
 from datetime import datetime
 import torch.nn.functional as func
-from model2 import UNETv6, UNETv7
-
+from model3 import UNETv8
 
 def main():
     # network hyperparameters
@@ -18,8 +17,8 @@ def main():
 
     # training hyperparameters
     batch_size = 4  # 4 for testing, 16 for training
-    n_epoch = 200
-    l_rate = 1e-7  # changing from 1e-5 to 1e-6
+    n_epoch = 50
+    l_rate = 1e-6  # changing from 1e-5 to 1e-6
 
     # Loading Data
     # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_id'
@@ -32,15 +31,13 @@ def main():
     print(f'Dataloader length: {len(train_loader)}')
 
     # DDPM noise schedule
-    time_steps = 500
-    # ab_t = simple_time_schedule(time_steps,device=device)
-    # beta1 = 1e-4*5
-    # beta2 = 0.02*5
-    # ab_t = linear_time_schedule(time_steps, beta1=beta1, beta2=beta2, device=device)
-    ab_t = cosine_time_schedule(time_steps, s=0.008, device=device)
+    time_steps = 100
+    beta1 = 1e-4
+    beta2 = 0.3
+    ab_t = linear_time_schedule(time_steps, beta1=beta1, beta2=beta2, device=device)
 
     # Model and optimizer
-    nn_model = UNETv7(in_channels=3, out_channels=1).to(device)
+    nn_model = UNETv8(in_channels=3, out_channels=1).to(device)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
     trained_epochs = 0
@@ -81,10 +78,9 @@ def main():
             optim.step()
 
         # save model every x epochs
-        if ep % 20 == 0 or ep == int(n_epoch - 1):
+        if ep % 10 == 0 or ep == int(n_epoch - 1):
             torch.save(nn_model.state_dict(), save_dir + f"\\model_{ep}.pth")
             np.save(save_dir + f"\\loss_{ep}.npy", np.array(loss_arr))
-            # print("Saved model and loss")
 
 
 if __name__ == '__main__':
