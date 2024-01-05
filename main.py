@@ -3,7 +3,7 @@ import os
 from tqdm import tqdm
 import numpy as np
 from torch.utils.data import DataLoader
-from diffusion_utils import *
+from guided_diffusion import *
 from datetime import datetime
 import torch.nn.functional as func
 from model4 import UNETv10
@@ -34,7 +34,7 @@ def main():
     time_steps = 1000
     beta1 = 1e-4
     beta2 = 0.03
-    ab_t = linear_time_schedule(time_steps, beta1=beta1, beta2=beta2, device=device)
+    beta, gamma = linear_beta_schedule(time_steps, beta1, beta2, device)
 
     # Model and optimizer
     nn_model = UNETv10(in_channels=3, out_channels=1).to(device)
@@ -60,8 +60,8 @@ def main():
 
             # perturb data
             noise = torch.randn_like(y)
-            t = torch.randint(1, time_steps + 1, (x.shape[0],)).to(device)
-            y_pert = perturb_input(y, ab_t[t], noise)
+            t = torch.randint(0, time_steps, (x.shape[0],)).to(device)
+            y_pert = forward_process(y, t, gamma, noise)
             input_model = torch.cat((x, y_pert), 1)
 
             # use network to recover noise
