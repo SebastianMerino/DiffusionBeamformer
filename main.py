@@ -11,13 +11,13 @@ from model4 import UNETv10
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v10'
+    save_dir = r'.\weights_v8_T1000'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
     # training hyperparameters
     batch_size = 8  # 4 for testing, 16 for training
-    n_epoch = 50
+    n_epoch = 200
     l_rate = 1e-6  # changing from 1e-5 to 1e-6
 
     # Loading Data
@@ -32,8 +32,8 @@ def main():
 
     # DDPM noise schedule
     time_steps = 1000
-    beta1 = 1e-6
-    beta2 = 0.02
+    beta1 = 1e-4
+    beta2 = 0.03
     ab_t = linear_time_schedule(time_steps, beta1=beta1, beta2=beta2, device=device)
 
     # Model and optimizer
@@ -50,13 +50,10 @@ def main():
     # Training
     nn_model.train()
     # pbar = tqdm(range(trained_epochs+1,n_epoch+1), mininterval=2)
+    print(f' Epoch 0/{n_epoch}, {datetime.now()}')
     for ep in range(trained_epochs+1, n_epoch+1):
-        if loss_arr:
-            print(f' Epoch {ep:03}/{n_epoch}, loss: {loss_arr[-1]:.2f}, {datetime.now()}')
-        else:
-            print(f' Epoch {ep:03}/{n_epoch}, {datetime.now()}')
-        # pbar = tqdm(train_loader, mininterval=2)
-        for x, y in train_loader:  # x: images
+        pbar = tqdm(train_loader, mininterval=2)
+        for x, y in pbar:  # x: images
             optim.zero_grad()
             x = x.to(device)
             y = y.to(device)
@@ -74,14 +71,13 @@ def main():
             loss = func.mse_loss(predicted_noise, noise)
             loss.backward()
             loss_arr.append(loss.item())
-
             optim.step()
 
+        print(f' Epoch {ep:03}/{n_epoch}, loss: {loss_arr[-1]:.2f}, {datetime.now()}')
         # save model every x epochs
         if ep % 10 == 0 or ep == int(n_epoch - 1):
             torch.save(nn_model.state_dict(), save_dir + f"\\model_{ep}.pth")
             np.save(save_dir + f"\\loss_{ep}.npy", np.array(loss_arr))
-
 
 if __name__ == '__main__':
     main()
