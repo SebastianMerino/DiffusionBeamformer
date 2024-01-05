@@ -91,7 +91,7 @@ def sample_image_cond(x, model, beta, num_intermediate = 5):
     y_shape[1] = 1
     y_gen = torch.randn(y_shape, device=device)
     stepsize = int(T/(num_intermediate-1))
-    intermediate = [y_gen]
+    intermediate = [y_gen.detach().cpu()]
     for i in tqdm(range(T-1,0,-1)):
         t = torch.full((1,), i, device=device, dtype=torch.long)
         y_gen = sample_timestep_cond(x, y_gen, t, model, beta)
