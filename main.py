@@ -52,8 +52,8 @@ def main():
     # pbar = tqdm(range(trained_epochs+1,n_epoch+1), mininterval=2)
     print(f' Epoch 0/{n_epoch}, {datetime.now()}')
     for ep in range(trained_epochs+1, n_epoch+1):
-        pbar = tqdm(train_loader, mininterval=2)
-        for x, y in pbar:  # x: images
+        # pbar = tqdm(train_loader, mininterval=2)
+        for x, y in train_loader:  # x: images
             optim.zero_grad()
             x = x.to(device)
             y = y.to(device)
