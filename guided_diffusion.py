@@ -59,7 +59,7 @@ def sample_timestep_cond(x, y_gen, t, model, beta):
     return model_mean + torch.sqrt(posterior_variance_t) * noise
 
 @torch.no_grad()
-def sample_image_cond(x, model, beta, num_intermediate = 5):
+def sample_image_cond(x, model, beta, num_intermediate = 5, clamp=True):
     """ Samples beamformed image y from x """
     # Sample noise
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
@@ -68,14 +68,15 @@ def sample_image_cond(x, model, beta, num_intermediate = 5):
     y_shape = list(x.shape)
     y_shape[1] = 1
     y_gen = torch.randn(y_shape, device=device)
-    stepsize = int(T/(num_intermediate-1))
-    intermediate = [y_gen.detach().cpu()]
+    stepsize = int(T/num_intermediate)
+    intermediate = []
     for i in tqdm(range(T,0,-1)):
         t = torch.full((1,), i-1, device=device, dtype=torch.long)
         y_gen = sample_timestep_cond(x, y_gen, t, model, beta)
         # Edit: This is to maintain the natural range of the distribution
-        y_gen = torch.clamp(y_gen, -1.0, 1.0)
-        if i%stepsize == 0 or i==1:
+        if clamp:
+            y_gen = torch.clamp(y_gen, -1.0, 1.0)
+        if i%stepsize == 0:
             intermediate.append(y_gen.detach().cpu())
     return y_gen.detach().cpu(), intermediate
 
