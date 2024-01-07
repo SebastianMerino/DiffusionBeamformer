@@ -11,7 +11,7 @@ from model3 import UNETv8
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v8_T100'
+    save_dir = r'.\weights_v8_T1000'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -31,16 +31,16 @@ def main():
     print(f'Dataloader length: {len(train_loader)}')
 
     # DDPM noise schedule
-    time_steps = 100
+    time_steps = 1000
     beta1 = 1e-4
-    beta2 = 2e-2
+    beta2 = 0.03
     beta, gamma = linear_beta_schedule(time_steps, beta1, beta2, device)
 
     # Model and optimizer
     nn_model = UNETv8(in_channels=3, out_channels=1).to(device)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
-    trained_epochs = 0
+    trained_epochs = 90
     if trained_epochs > 0:
         nn_model.load_state_dict(torch.load(f"{save_dir}\\model_{trained_epochs}.pth", map_location=device))  # From last model
         loss_arr = np.load(f"{save_dir}\\loss_{trained_epochs}.npy").tolist()  # From last model
