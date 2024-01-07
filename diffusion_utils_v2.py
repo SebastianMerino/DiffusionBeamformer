@@ -42,7 +42,7 @@ def get_index_from_list(vals, t, x_shape):
     while considering the batch dimension.
     """
     batch_size = t.shape[0]
-    out = vals.gather(-1, t.cpu())
+    out = vals.gather(-1, t)
     return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(t.device)
 
 def forward_diffusion_sample(x0, t, gamma, device="cpu"):

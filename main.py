@@ -6,12 +6,12 @@ from torch.utils.data import DataLoader
 from guided_diffusion import *
 from datetime import datetime
 import torch.nn.functional as func
-from model4 import UNETv10
+from model3 import UNETv8
 
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v8_T1000'
+    save_dir = r'.\weights_v8_T100'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -31,13 +31,13 @@ def main():
     print(f'Dataloader length: {len(train_loader)}')
 
     # DDPM noise schedule
-    time_steps = 1000
+    time_steps = 100
     beta1 = 1e-4
-    beta2 = 0.03
+    beta2 = 2e-2
     beta, gamma = linear_beta_schedule(time_steps, beta1, beta2, device)
 
     # Model and optimizer
-    nn_model = UNETv10(in_channels=3, out_channels=1).to(device)
+    nn_model = UNETv8(in_channels=3, out_channels=1).to(device)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
     trained_epochs = 0
