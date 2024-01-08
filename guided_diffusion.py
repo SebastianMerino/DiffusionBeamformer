@@ -34,11 +34,6 @@ def forward_process(x0, t, gamma, noise):
     # mean + variance
     return gamma.sqrt() * x0 + (1-gamma).sqrt() * noise
 
-def normalize_image(img):
-    result = (img - torch.min(img)) / (torch.max(img) - torch.min(img))
-    result = (result*2)-1
-    return result
-
 @torch.no_grad()
 def sample_timestep_cond(x, y_gen, t, model, beta):
     """
@@ -83,8 +78,8 @@ def sample_image_cond(x, model, beta, num_intermediate = 5, clamp=True):
             y_gen = torch.clamp(y_gen, -1.0, 1.0)
         if i%stepsize == 0:
             intermediate.append(y_gen.detach().cpu())
-    y_norm = normalize_image(y_gen.detach().cpu())
-    return y_norm, intermediate
+    # y_norm = normalize_image(y_gen.detach().cpu())
+    return y_gen.detach().cpu(), intermediate
 
 class CustomDataset(Dataset):
     def __init__(self, input_folder, output_folder, transform=True):
