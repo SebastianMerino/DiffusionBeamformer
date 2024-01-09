@@ -70,19 +70,21 @@ def sample_timestep_cond(x, y_gen, t, model, beta):
     the denoised image.
     Applies noise to this image, if we are not in the last step yet.
     """
+    device = beta.device
     alpha = 1. - beta
     gamma = torch.cumprod(alpha, axis=0)
+    gamma_prev = torch.cat((torch.Tensor([1]).to(device), gamma[:-1]))
 
     beta_t = get_index_from_list(beta, t, y_gen.shape)
     alpha_t = get_index_from_list(alpha, t, y_gen.shape)
     gamma_t = get_index_from_list(gamma, t, y_gen.shape)
-    gamma_prev = get_index_from_list(gamma, t-1, y_gen.shape) if t != 0 else 1
+    gamma_t_prev = get_index_from_list(gamma_prev, t, y_gen.shape)
 
     input = torch.cat((x, y_gen), 1)
     eps = model(input, t)
     # Call model (current image - noise prediction)
     model_mean = (1/alpha_t.sqrt()) * (y_gen - beta_t * eps / (1 - gamma_t).sqrt())
-    posterior_variance_t = beta_t * (1. - gamma_prev) / (1. - gamma_t)
+    posterior_variance_t = beta_t * (1. - gamma_t_prev) / (1. - gamma_t)
 
     noise = torch.randn_like(y_gen)
     return model_mean + torch.sqrt(posterior_variance_t) * noise
@@ -91,8 +93,7 @@ def sample_timestep_cond(x, y_gen, t, model, beta):
 def sample_image_cond(x, model, beta, num_intermediate = 5, clamp=True):
     """ Samples beamformed image y from x """
     # Sample noise
-    device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    x = x.to(device)
+    device = x.device
     T = len(beta)
     y_shape = list(x.shape)
     y_shape[1] = 1
@@ -100,7 +101,7 @@ def sample_image_cond(x, model, beta, num_intermediate = 5, clamp=True):
     stepsize = int(T/num_intermediate)
     intermediate = []
     for i in tqdm(range(T,0,-1)):
-        t = torch.full((1,), i-1, device=device, dtype=torch.long)
+        t = torch.full((x.shape[0],), i-1, device=device, dtype=torch.long)
         y_gen = sample_timestep_cond(x, y_gen, t, model, beta)
         # Edit: This is to maintain the natural range of the distribution
         if clamp:

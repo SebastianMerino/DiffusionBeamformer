@@ -21,10 +21,10 @@ def main():
     l_rate = 1e-6  # changing from 1e-5 to 1e-6
 
     # Loading Data
-    input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_id'
-    output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_enh'
-    # input_folder = r'C:\Users\u_imagenes\Documents\smerino\input'
-    # output_folder = r'C:\Users\u_imagenes\Documents\smerino\target_enh'
+    # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_id'
+    # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_enh'
+    input_folder = r'C:\Users\u_imagenes\Documents\smerino\input'
+    output_folder = r'C:\Users\u_imagenes\Documents\smerino\target_enh'
     dataset = CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
