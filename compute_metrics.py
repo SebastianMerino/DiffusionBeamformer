@@ -137,13 +137,11 @@ def delay_focus(grid, ele_pos):
     return dist
 
 
-## Simple phase rotation of I and Q component by complex angle theta
+# Simple phase rotation of I and Q component by complex angle theta
 def complex_rotate(I, Q, theta):
     Ir = I * torch.cos(theta) - Q * torch.sin(theta)
     Qr = Q * torch.cos(theta) + I * torch.sin(theta)
     return Ir, Qr
-
-
 
 
 def make_pixel_grid_from_pos(x_pos, z_pos):
@@ -151,7 +149,6 @@ def make_pixel_grid_from_pos(x_pos, z_pos):
     yy = xx * 0
     grid = np.stack((xx, yy, zz), axis=-1)  # [nrows, ncols, 3]
     return grid
-
 
 
 class DAS_PW(torch.nn.Module):
