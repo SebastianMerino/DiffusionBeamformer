@@ -7,6 +7,7 @@ from guided_diffusion import *
 from datetime import datetime
 import torch.nn.functional as func
 from model4 import UNETv10
+import torch.nn as nn
 
 def main():
     # network hyperparameters
@@ -71,6 +72,7 @@ def main():
             # loss is mean squared error between the predicted and true noise
             loss = func.mse_loss(predicted_noise, noise)
             loss.backward()
+            nn.utils.clip_grad_norm_(nn_model.parameters(),0.5)
             loss_arr.append(loss.item())
             optim.step()
 
