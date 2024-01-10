@@ -9,50 +9,6 @@ import copy
 
 PI = 3.14159265359
 
-def main():
-    h5_dir = 'E:/Itamar_LIM/datasets/simulatedCystDataset/raw_0.0Att'
-    P = LoadDataParams(h5_dir=h5_dir, simu_name='simu00014')
-
-    depths = np.linspace(P.grid_zlims[0], P.grid_xlims[1], num=800)
-    laterals = np.linspace(P.grid_xlims[0], P.grid_xlims[1], num=128)
-    grid = make_pixel_grid_from_pos(x_pos=laterals, z_pos=depths)
-
-    bmode_DAS, _ = make_bimg_das1(copy.deepcopy(P), grid, device='cpu')
-
-
-    extent = [laterals[0] * 1e3, laterals[-1] * 1e3, depths[-1] * 1e3, depths[0] * 1e3]
-    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, sharey=True)
-    ax.imshow(bmode_DAS, cmap="gray", vmin=-60, vmax=0, extent=extent, origin="upper")
-    ax.set_xlabel('Lateral [mm]')
-    ax.set_ylabel('Axial [mm]')
-    ax.set_title('DAS (fc: %.1f MHz)' % (P.fc/1e6))
-    plt.savefig(os.path.join(h5_dir,'my_image.png'))
-
-def get_data_params(h5_dir):
-    import pandas as pd
-    r = []
-    cx = []
-    cz = []
-    c = []
-    for id_simu in range(12500):
-        P = LoadDataParams(h5_dir=h5_dir, simu_name=f'simu{id_simu:05d}')
-        r.append(P.radius)
-        c.append(P.c)
-        cx.append(P.pos_lat)
-        cz.append(P.pos_ax)
-    dataset_params = {"r": r, "cx": cx, "cz": cz, "c": c}
-    params_df = pd.DataFrame(dataset_params)
-    params_df.to_csv('dataset_params.csv')
-
-    P = LoadDataParams(h5_dir=h5_dir, simu_name=f'simu00001')
-    common_params = [P.angles, P.ele_pos, P.fc, P.fdemod, P.fs, P.grid_xlims, P.grid_zlims, P.time_zero]
-    common_params_keys = ["angles","ele_pos","fc","fdemod","fs","grid_xlims","grid_zlims", "time_zero"]
-    common_params_dict = dict(zip(common_params_keys,common_params))
-    common_params_df = pd.DataFrame(common_params_dict)
-    common_params_df.to_csv("common_params.csv")
-
-
-
 class PlaneWaveData:
     def __init__(self):
         """Dummy init. Do not USE"""

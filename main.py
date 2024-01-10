@@ -12,20 +12,20 @@ import torch.nn as nn
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v10_T1000_cosine'
+    save_dir = r'.\weights_v10_FINAL'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
     # training hyperparameters
     batch_size = 8  # 4 for testing, 16 for training
-    n_epoch = 200
+    n_epoch = 100
     l_rate = 1e-6  # changing from 1e-5 to 1e-6
 
     # Loading Data
     # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_id'
     # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_enh'
-    input_folder = r'C:\Users\u_imagenes\Documents\smerino\input'
-    output_folder = r'C:\Users\u_imagenes\Documents\smerino\target_enh'
+    input_folder = r'C:\Users\u_imagenes\Documents\smerino\new_training\input'
+    output_folder = r'C:\Users\u_imagenes\Documents\smerino\new_training\target_enh'
     dataset = CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -33,10 +33,8 @@ def main():
 
     # DDPM noise schedule
     time_steps = 1000
-    # beta1 = 1e-4
-    # beta2 = 0.03
-    # beta, gamma = linear_beta_schedule(time_steps, beta1, beta2, device)
-    beta, gamma = cosine_schedule(time_steps, device)
+    beta, gamma = linear_beta_schedule(time_steps, start=1e-4, end=0.03, device=device)
+    # beta, gamma = cosine_schedule(time_steps, device)
     
     # Model and optimizer
     nn_model = UNETv10(in_channels=3, out_channels=1).to(device)
@@ -72,7 +70,7 @@ def main():
             # loss is mean squared error between the predicted and true noise
             loss = func.mse_loss(predicted_noise, noise)
             loss.backward()
-            nn.utils.clip_grad_norm_(nn_model.parameters(),0.5)
+            # nn.utils.clip_grad_norm_(nn_model.parameters(),0.5)
             loss_arr.append(loss.item())
             optim.step()
 
