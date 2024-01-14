@@ -6,13 +6,13 @@ from torch.utils.data import DataLoader
 from guided_diffusion import *
 from datetime import datetime
 import torch.nn.functional as func
-from model4 import UNETv10
+from model5 import UNETv11
 import torch.nn as nn
 
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v10_FINAL'
+    save_dir = r'.\weights_v11'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -22,8 +22,8 @@ def main():
     l_rate = 1e-6  # changing from 1e-5 to 1e-6
 
     # Loading Data
-    # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_id'
-    # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_enh'
+    # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
+    # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
     input_folder = r'C:\Users\u_imagenes\Documents\smerino\new_training\input'
     output_folder = r'C:\Users\u_imagenes\Documents\smerino\new_training\target_enh'
     dataset = CustomDataset(input_folder, output_folder, transform=True)
@@ -37,7 +37,7 @@ def main():
     # beta, gamma = cosine_schedule(time_steps, device)
     
     # Model and optimizer
-    nn_model = UNETv10(in_channels=3, out_channels=1).to(device)
+    nn_model = UNETv11().to(device)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
     trained_epochs = 0
@@ -62,10 +62,10 @@ def main():
             noise = torch.randn_like(y)
             t = torch.randint(0, time_steps, (x.shape[0],)).to(device)
             y_pert = forward_process(y, t, gamma, noise)
-            input_model = torch.cat((x, y_pert), 1)
+            # input_model = torch.cat((x, y_pert), 1)
 
             # use network to recover noise
-            predicted_noise = nn_model(input_model, t)
+            predicted_noise = nn_model(x, y_pert, t)
 
             # loss is mean squared error between the predicted and true noise
             loss = func.mse_loss(predicted_noise, noise)
