@@ -5,14 +5,14 @@ from RRDB import RRDBNet
 
 class UNETv11(nn.Module):
     def __init__(
-            self, in_channels=2, out_channels=1, features=[64, 128, 256, 512], emb_dim=32
+            self, in_channels=2, out_channels=1, features=[64, 128, 256, 512], emb_dim=32, rrdb_blocks = 3
         ):
         super(UNETv11, self).__init__()
         # Encodes noisy Bmode to feature map of first layer of UNET
         self.initial_block_F = nn.Conv2d(in_channels=1, out_channels=features[0], kernel_size=3, padding=1)
 
         # Encodes IQ to feature map of first layer of UNET
-        self.initial_block_G = RRDBNet(in_nc=in_channels, nb = 3, out_nc=features[0])
+        self.initial_block_G = RRDBNet(in_nc=in_channels, nb = rrdb_blocks, out_nc=features[0])
 
 
         self.time_mlp = nn.Sequential(

@@ -37,7 +37,7 @@ def main():
     # beta, gamma = cosine_schedule(time_steps, device)
     
     # Model and optimizer
-    nn_model = UNETv11().to(device)
+    nn_model = UNETv11(rrdb_blocks=1).to(device)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
     trained_epochs = 0
