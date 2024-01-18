@@ -5,7 +5,13 @@ from RRDB import RRDBNet
 
 class UNETv11(nn.Module):
     def __init__(
-            self, in_channels=2, out_channels=1, features=[64, 128, 256, 512], emb_dim=32, rrdb_blocks = 3
+            self, 
+            in_channels=2, 
+            out_channels=1, 
+            features=[64, 128, 256, 512], 
+            emb_dim=32, 
+            rrdb_blocks = 3,
+            residual = False
         ):
         super(UNETv11, self).__init__()
         # Encodes noisy Bmode to feature map of first layer of UNET
@@ -25,7 +31,7 @@ class UNETv11(nn.Module):
         self.downBlocks = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         for feature in features:
-            self.downBlocks.append(ResnetBlock(feature, feature * 2, emb_dim))
+            self.downBlocks.append(ResnetBlock(feature, feature * 2, emb_dim, residual=True))
 
         # Up part of UNET
         self.upBlocks = nn.ModuleList()
@@ -33,7 +39,7 @@ class UNETv11(nn.Module):
         for feature in reversed(features):
             self.upConvs.append(
                 nn.ConvTranspose2d(feature * 2, feature, kernel_size=2, stride=2))
-            self.upBlocks.append(ResnetBlock(feature * 2, feature, emb_dim))
+            self.upBlocks.append(ResnetBlock(feature * 2, feature, emb_dim, residual=True))
 
         self.final_block = nn.Conv2d(features[0], out_channels, kernel_size=1)
 

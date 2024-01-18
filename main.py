@@ -12,7 +12,7 @@ import torch.nn as nn
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v11_RRDB1_newlr'
+    save_dir = r'.\weights_v11_residual'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -37,7 +37,7 @@ def main():
     # beta, gamma = cosine_schedule(time_steps, device)
     
     # Model and optimizer
-    nn_model = UNETv11(rrdb_blocks=1).to(device)
+    nn_model = UNETv11(rrdb_blocks=1, residual=True).to(device)
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
     trained_epochs = 0
