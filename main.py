@@ -12,20 +12,20 @@ import torch.nn as nn
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights_v11'
+    save_dir = r'.\weights_v11_RRDB1_newlr'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
     # training hyperparameters
-    batch_size = 8  # 4 for testing, 16 for training
+    batch_size = 4  # 4 for testing, 16 for training
     n_epoch = 100
-    l_rate = 1e-6  # changing from 1e-5 to 1e-6
+    l_rate = 1e-7  # changing from 1e-5 to 1e-6, new lr 1e-7
 
     # Loading Data
     # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
     # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
-    input_folder = r'C:\Users\u_imagenes\Documents\smerino\new_training\input'
-    output_folder = r'C:\Users\u_imagenes\Documents\smerino\new_training\target_enh'
+    input_folder = r'C:\Users\u_imagenes\Documents\smerino\training\input'
+    output_folder = r'C:\Users\u_imagenes\Documents\smerino\training\target_enh'
     dataset = CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
