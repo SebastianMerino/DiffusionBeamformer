@@ -17,15 +17,15 @@ def main():
         os.mkdir(save_dir)
 
     # training hyperparameters
-    batch_size = 4  # 4 for testing, 16 for training
-    n_epoch = 1000
-    l_rate = 1e-5  # changing from 1e-5 to 1e-6, new lr 1e-7
+    batch_size = 2  # 4 for testing, 16 for training
+    n_epoch = 50
+    l_rate = 1e-6  # changing from 1e-5 to 1e-6, new lr 1e-7
 
     # Loading Data
-    input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
-    output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
-    # input_folder = r'C:\Users\u_imagenes\Documents\smerino\overfit\input'
-    # output_folder = r'C:\Users\u_imagenes\Documents\smerino\overfit\target_enh'
+    # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
+    # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
+    input_folder = r'C:\Users\u_imagenes\Documents\smerino\training\input'
+    output_folder = r'C:\Users\u_imagenes\Documents\smerino\training\target_enh'
     dataset = CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -76,7 +76,7 @@ def main():
 
         print(f' Epoch {ep:03}/{n_epoch}, loss: {loss_arr[-1]:.2f}, {datetime.now()}')
         # save model every x epochs
-        if ep % 100 == 0 or ep == int(n_epoch - 1):
+        if ep % 5 == 0 or ep == int(n_epoch - 1):
             torch.save(nn_model.state_dict(), save_dir + f"\\model_{ep}.pth")
             np.save(save_dir + f"\\loss_{ep}.npy", np.array(loss_arr))
 
