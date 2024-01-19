@@ -20,7 +20,6 @@ class UNETv11(nn.Module):
         # Encodes IQ to feature map of first layer of UNET
         self.initial_block_G = RRDBNet(in_nc=in_channels, nb = rrdb_blocks, out_nc=features[0])
 
-
         self.time_mlp = nn.Sequential(
             PositionalEncoding(emb_dim),
             nn.Linear(emb_dim, emb_dim),
@@ -31,7 +30,7 @@ class UNETv11(nn.Module):
         self.downBlocks = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         for feature in features:
-            self.downBlocks.append(ResnetBlock(feature, feature * 2, emb_dim, residual=True))
+            self.downBlocks.append(ResnetBlock(feature, feature * 2, emb_dim, residual=residual))
 
         # Up part of UNET
         self.upBlocks = nn.ModuleList()
@@ -39,7 +38,7 @@ class UNETv11(nn.Module):
         for feature in reversed(features):
             self.upConvs.append(
                 nn.ConvTranspose2d(feature * 2, feature, kernel_size=2, stride=2))
-            self.upBlocks.append(ResnetBlock(feature * 2, feature, emb_dim, residual=True))
+            self.upBlocks.append(ResnetBlock(feature * 2, feature, emb_dim, residual=residual))
 
         self.final_block = nn.Conv2d(features[0], out_channels, kernel_size=1)
 
@@ -126,5 +125,5 @@ class ResnetBlock(nn.Module):
         h = self.noise_func(h, time_emb)
         h = self.block2(h)
         if self.res_conv:
-            h += self.res_conv(x)
+            h = h + self.res_conv(x)
         return h
