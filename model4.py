@@ -50,6 +50,54 @@ class UNETv10(nn.Module):
 
         return self.final_block(x)
 
+class UNETv10_5(nn.Module):
+    def __init__(
+            self, in_channels=3, out_channels=1, features=[64, 128, 256, 512], emb_dim=32
+        ):
+        super(UNETv10_5, self).__init__()
+        self.initial_block = ResnetBlock(in_channels, features[0], emb_dim)
+        self.time_mlp = nn.Sequential(
+            PositionalEncoding(emb_dim),
+            nn.Linear(emb_dim, emb_dim),
+            nn.ReLU(),
+        )
+
+        # Down part of UNET
+        self.downBlocks = nn.ModuleList()
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        for feature in features:
+            self.downBlocks.append(ResnetBlock(feature, feature * 2, emb_dim))
+
+        # Up part of UNET
+        self.upBlocks = nn.ModuleList()
+        self.upConvs = nn.ModuleList()
+        for feature in reversed(features):
+            self.upConvs.append(
+                nn.ConvTranspose2d(feature * 2, feature, kernel_size=2, stride=2))
+            self.upBlocks.append(ResnetBlock(feature * 2, feature, emb_dim))
+
+        self.final_block = nn.Conv2d(features[0], out_channels, kernel_size=1)
+
+    def forward(self, x, y, t):
+        time_emb = self.time_mlp(t)
+        x = torch.cat((x, y), 1)
+        x = self.initial_block(x, time_emb)
+
+        # Convolutional layers and max-pooling
+        skip_connections = []
+        for block in self.downBlocks:
+            skip_connections.append(x)
+            x = self.pool(x)
+            x = block(x, time_emb)
+
+        # Convolutional layers and up-sampling
+        skip_connections = skip_connections[::-1]  # Reversing list
+        for idx in range(len(self.upBlocks)):
+            x = self.upConvs[idx](x)  # UpConvolution
+            concat_skip = torch.cat((skip_connections[idx], x), dim=1)
+            x = self.upBlocks[idx](concat_skip, time_emb)  # Double convs
+
+        return self.final_block(x)
 
 
 # PositionalEncoding Source： https://github.com/lmnt-com/wavegrad/blob/master/src/wavegrad/model.py

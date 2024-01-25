@@ -7,17 +7,18 @@ from guided_diffusion_v2 import *
 from datetime import datetime
 import torch.nn.functional as func
 from model6 import UNETv12
+from model4 import UNETv10_5
 import torch.nn as nn
 
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights\v12'
+    save_dir = r'.\weights\v10_5'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
     # training hyperparameters
-    batch_size = 2  # 4 for testing, 16 for training
+    batch_size = 8  # 4 for testing, 16 for training
     n_epoch = 50
     l_rate = 1e-6  # changing from 1e-5 to 1e-6, new lr 1e-7
 
@@ -36,7 +37,8 @@ def main():
     beta, gamma = linear_beta_schedule(time_steps, start=1e-4, end=0.02, device=device)
     
     # Model and optimizer
-    nn_model = UNETv12(rrdb_blocks=1).to(device)
+    # nn_model = UNETv12(rrdb_blocks=1).to(device)
+    nn_model = UNETv10_5().to(device)
     print("Num params: ", sum(p.numel() for p in nn_model.parameters()))
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 

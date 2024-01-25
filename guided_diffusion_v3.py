@@ -393,6 +393,7 @@ class GaussianDiffusion:
         self,
         model,
         shape,
+        x,
         noise=None,
         clip_denoised=True,
         denoised_fn=None,
@@ -421,6 +422,7 @@ class GaussianDiffusion:
         for sample in self.p_sample_loop_progressive(
             model,
             shape,
+            x,
             noise=noise,
             clip_denoised=clip_denoised,
             denoised_fn=denoised_fn,
@@ -781,7 +783,7 @@ class GaussianDiffusion:
         )
         return mean_flat(kl_prior) / np.log(2.0)
 
-    def calc_bpd_loop(self, model, y_start, clip_denoised=True, model_kwargs=None):
+    def calc_bpd_loop(self, model, x, y_start, clip_denoised=True, model_kwargs=None):
         """
         Compute the entire variational lower-bound, measured in bits-per-dim,
         as well as other related quantities.
