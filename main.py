@@ -12,7 +12,7 @@ import torch.nn as nn
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights\v13A'
+    save_dir = r'.\weights\v13B'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -44,7 +44,7 @@ def main():
     )
     
     # Model and optimizer
-    nn_model = UNETv13(residual=False, attention_res=[]).to(device)
+    nn_model = UNETv13(residual=True, attention_res=[]).to(device)
     print("Num params: ", sum(p.numel() for p in nn_model.parameters()))
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
