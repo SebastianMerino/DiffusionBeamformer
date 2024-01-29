@@ -3,42 +3,48 @@ import os
 from tqdm import tqdm
 import numpy as np
 from torch.utils.data import DataLoader
-from guided_diffusion_v2 import *
+import guided_diffusion_v3 as gd
 from datetime import datetime
 import torch.nn.functional as func
-from model6 import UNETv12
-from model4 import UNETv10_5
+from model7 import UNETv13
 import torch.nn as nn
 
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights\v10_5'
+    save_dir = r'.\weights\v13A'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
     # training hyperparameters
-    batch_size = 8  # 4 for testing, 16 for training
-    n_epoch = 50
-    l_rate = 1e-6  # changing from 1e-5 to 1e-6, new lr 1e-7
+    batch_size = 4  # 4 for testing, 16 for training
+    n_epoch = 10
+    l_rate = 1e-5  # changing from 1e-5 to 1e-6, new lr 1e-7
 
     # Loading Data
     # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
     # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
     input_folder = r'C:\Users\u_imagenes\Documents\smerino\training\input'
     output_folder = r'C:\Users\u_imagenes\Documents\smerino\training\target_enh'
-    dataset = CustomDataset(input_folder, output_folder, transform=True)
+    dataset = gd.CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     print(f'Dataloader length: {len(train_loader)}')
 
     # DDPM noise schedule
     time_steps = 1000
-    beta, gamma = linear_beta_schedule(time_steps, start=1e-4, end=0.02, device=device)
+    betas = gd.get_named_beta_schedule('linear', time_steps)
+    diffusion = gd.SpacedDiffusion(
+        use_timesteps = gd.space_timesteps(time_steps, section_counts=[time_steps]),
+        betas = betas,
+        model_mean_type = gd.ModelMeanType.EPSILON,
+        model_var_type= gd.ModelVarType.FIXED_LARGE,
+        loss_type = gd.LossType.MSE,
+        rescale_timesteps = True,
+    )
     
     # Model and optimizer
-    # nn_model = UNETv12(rrdb_blocks=1).to(device)
-    nn_model = UNETv10_5().to(device)
+    nn_model = UNETv13(residual=False, attention_res=[]).to(device)
     print("Num params: ", sum(p.numel() for p in nn_model.parameters()))
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
@@ -63,15 +69,15 @@ def main():
             # perturb data
             noise = torch.randn_like(y)
             t = torch.randint(0, time_steps, (x.shape[0],)).to(device)
-            y_pert = forward_process(y, t, gamma, noise)
-            # input_model = torch.cat((x, y_pert), 1)
-
+            y_pert = diffusion.q_sample(y, t, noise)
+            
             # use network to recover noise
             predicted_noise = nn_model(x, y_pert, t)
 
             # loss is mean squared error between the predicted and true noise
             loss = func.mse_loss(predicted_noise, noise)
             loss.backward()
+
             # nn.utils.clip_grad_norm_(nn_model.parameters(),0.5)
             loss_arr.append(loss.item())
             optim.step()

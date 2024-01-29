@@ -68,7 +68,7 @@ class ModelMeanType(enum.Enum):
     """
 
     PREVIOUS_X = enum.auto()  # the model predicts y_{t-1}
-    START_X = enum.auto()  # the model predicts x_0
+    START_X = enum.auto()  # the model predicts y_0
     EPSILON = enum.auto()  # the model predicts epsilon
 
 
@@ -150,7 +150,7 @@ class GaussianDiffusion:
         self.sqrt_recip_alphas_cumprod = np.sqrt(1.0 / self.alphas_cumprod)
         self.sqrt_recipm1_alphas_cumprod = np.sqrt(1.0 / self.alphas_cumprod - 1)
 
-        # calculations for posterior q(y_{t-1} | y_t, x_0)
+        # calculations for posterior q(y_{t-1} | y_t, y_0)
         self.posterior_variance = (
             betas * (1.0 - self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
         )
@@ -170,7 +170,7 @@ class GaussianDiffusion:
 
     def q_mean_variance(self, y_start, t):
         """
-        Get the distribution q(y_t | x_0).
+        Get the distribution q(y_t | y_0).
 
         :param y_start: the [N x C x ...] tensor of noiseless inputs.
         :param t: the number of diffusion steps (minus 1). Here, 0 means one step.
@@ -189,7 +189,7 @@ class GaussianDiffusion:
         """
         Diffuse the data for a given number of diffusion steps.
 
-        In other words, sample from q(y_t | x_0).
+        In other words, sample from q(y_t | y_0).
 
         :param y_start: the initial data batch.
         :param t: the number of diffusion steps (minus 1). Here, 0 means one step.
@@ -209,7 +209,7 @@ class GaussianDiffusion:
         """
         Compute the mean and variance of the diffusion posterior:
 
-            q(y_{t-1} | y_t, x_0)
+            q(y_{t-1} | y_t, y_0)
 
         """
         assert y_start.shape == y_t.shape
@@ -251,7 +251,7 @@ class GaussianDiffusion:
                  - 'mean': the model mean output.
                  - 'variance': the model variance output.
                  - 'log_variance': the log of 'variance'.
-                 - 'pred_xstart': the prediction for x_0.
+                 - 'pred_xstart': the prediction for y_0.
         """
         if model_kwargs is None:
             model_kwargs = {}
@@ -371,7 +371,7 @@ class GaussianDiffusion:
             pass to the model. This can be used for conditioning.
         :return: a dict containing the following keys:
                  - 'sample': a random sample from the model.
-                 - 'pred_xstart': a prediction of x_0.
+                 - 'pred_xstart': a prediction of y_0.
         """
         out = self.p_mean_variance(
             model,
@@ -663,7 +663,7 @@ class GaussianDiffusion:
 
         :return: a dict with the following keys:
                  - 'output': a shape [N] tensor of NLLs or KLs.
-                 - 'pred_xstart': the x_0 predictions.
+                 - 'pred_xstart': the y_0 predictions.
         """
         true_mean, _, true_log_variance_clipped = self.q_posterior_mean_variance(
             y_start=y_start, y_t=y_t, t=t
@@ -683,7 +683,7 @@ class GaussianDiffusion:
         decoder_nll = mean_flat(decoder_nll) / np.log(2.0)
 
         # At the first timestep return the decoder NLL,
-        # otherwise return KL(q(y_{t-1}|y_t,x_0) || p(y_{t-1}|y_t))
+        # otherwise return KL(q(y_{t-1}|y_t,y_0) || p(y_{t-1}|y_t))
         output = th.where((t == 0), decoder_nll, kl)
         return {"output": output, "pred_xstart": out["pred_xstart"]}
 
@@ -798,7 +798,7 @@ class GaussianDiffusion:
                  - total_bpd: the total variational lower-bound, per batch element.
                  - prior_bpd: the prior term in the lower-bound.
                  - vb: an [N x T] tensor of terms in the lower-bound.
-                 - xstart_mse: an [N x T] tensor of x_0 MSEs for each timestep.
+                 - xstart_mse: an [N x T] tensor of y_0 MSEs for each timestep.
                  - mse: an [N x T] tensor of epsilon MSEs for each timestep.
         """
         device = y_start.device
@@ -987,7 +987,7 @@ class CustomDataset(Dataset):
         self.input_folder = input_folder
         self.output_folder = output_folder
         self.transform = transform
-        self.transform_input = transforms.Normalize([0,0],[0.1172,0.1172])
+        # self.transform_input = transforms.Normalize([0,0],[0.1172,0.1172])
         self.transform_output = transforms.Lambda(lambda t: (t * 2) - 1)
         self.input_file_list = sorted(os.listdir(input_folder))
         self.output_file_list = sorted(os.listdir(output_folder))
@@ -1007,6 +1007,6 @@ class CustomDataset(Dataset):
         y = y.unsqueeze(0)
 
         if self.transform:
-            x = self.transform_input(x)
+            # x = self.transform_input(x)
             y = self.transform_output(y)
         return x, y
