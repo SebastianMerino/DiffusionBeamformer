@@ -7,12 +7,13 @@ import guided_diffusion_v3 as gd
 from datetime import datetime
 import torch.nn.functional as func
 from model7 import UNETv13
+from model4 import UNETv10_5
 import torch.nn as nn
 
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights\v13B'
+    save_dir = r'.\weights\v10_5_diff'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -44,7 +45,8 @@ def main():
     )
     
     # Model and optimizer
-    nn_model = UNETv13(residual=True, attention_res=[]).to(device)
+    # nn_model = UNETv13(residual=True, attention_res=[]).to(device)
+    nn_model = UNETv10_5().to(device)
     print("Num params: ", sum(p.numel() for p in nn_model.parameters()))
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
