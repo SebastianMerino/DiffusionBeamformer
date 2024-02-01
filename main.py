@@ -13,7 +13,7 @@ import torch.nn as nn
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights\v13A_BN'
+    save_dir = r'.\weights\v10_imp'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -45,8 +45,8 @@ def main():
     )
     
     # Model and optimizer
-    nn_model = UNETv13(residual=False, attention_res=[], group_norm=False).to(device)
-    # nn_model = UNETv10_5().to(device)
+    # nn_model = UNETv13(residual=False, attention_res=[], group_norm=False).to(device)
+    nn_model = UNETv10_5(emb_dim=64*4, improved=True).to(device)
     print("Num params: ", sum(p.numel() for p in nn_model.parameters()))
     # print("Num params: ", sum(p.numel() for p in nn_model.parameters() if p.requires_grad))
     #size = sum(p.numel() for p in model.parameters() if p.requires_grad)

@@ -52,15 +52,24 @@ class UNETv10(nn.Module):
 
 class UNETv10_5(nn.Module):
     def __init__(
-            self, in_channels=3, out_channels=1, features=[64, 128, 256, 512], emb_dim=32
+            self, in_channels=3, out_channels=1, features=[64, 128, 256, 512], emb_dim=32, improved=False
         ):
         super(UNETv10_5, self).__init__()
         self.initial_block = ResnetBlock(in_channels, features[0], emb_dim)
-        self.time_mlp = nn.Sequential(
-            PositionalEncoding(emb_dim),
-            nn.Linear(emb_dim, emb_dim),
-            nn.ReLU(),
-        )
+        if not improved:
+            self.time_mlp = nn.Sequential(
+                PositionalEncoding(emb_dim),
+                nn.Linear(emb_dim, emb_dim),
+                nn.ReLU(),
+            )
+        else: # Improved version, double linear layer
+            self.time_mlp = nn.Sequential(
+                PositionalEncoding(features[0]),
+                nn.Linear(features[0], emb_dim),
+                nn.ReLU(),
+                nn.Linear(emb_dim, emb_dim),
+                nn.ReLU(),
+            )
 
         # Down part of UNET
         self.downBlocks = nn.ModuleList()
