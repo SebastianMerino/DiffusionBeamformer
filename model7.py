@@ -13,7 +13,8 @@ class UNETv13(nn.Module):
             emb_dim = 256,
             residual = True,
             attention_heads = 4,
-            attention_res = [256,512]
+            attention_res = [256,512],
+            group_norm = True,
         ):
         super(UNETv13, self).__init__()
 
@@ -35,7 +36,8 @@ class UNETv13(nn.Module):
             use_scale_shift_norm = True,
             dims = 2,
             use_checkpoint = False,
-            residual=residual
+            residual=residual,
+            group_norm=group_norm
         )
 
         # Down part of UNET
@@ -53,7 +55,8 @@ class UNETv13(nn.Module):
                     use_scale_shift_norm = True,
                     dims = 2,
                     use_checkpoint = False,
-                    residual=residual
+                    residual=residual,
+                    group_norm=group_norm
                 ))
             if feature in attention_res:
                 self.downAttention.append(AttentionBlock(
@@ -80,7 +83,8 @@ class UNETv13(nn.Module):
                     use_scale_shift_norm = True,
                     dims = 2,
                     use_checkpoint = False,
-                    residual=residual
+                    residual=residual,
+                    group_norm=group_norm
                 ))
             if feature in attention_res:
                 self.upAttention.append(AttentionBlock(
@@ -157,7 +161,8 @@ class ResBlock(nn.Module):
         use_scale_shift_norm=False,
         dims=2,
         use_checkpoint=False,
-        residual = True
+        residual = True,
+        group_norm = True
     ):
         super().__init__()
         self.channels = channels
@@ -170,7 +175,7 @@ class ResBlock(nn.Module):
         self.use_scale_shift_norm = use_scale_shift_norm
 
         self.in_layers = nn.Sequential(
-            normalization(channels),
+            normalization(channels, group_norm),
             SiLU(),
             conv_nd(dims, channels, self.out_channels, 3, padding=1),
         )
@@ -182,7 +187,7 @@ class ResBlock(nn.Module):
             ),
         )
         self.out_layers = nn.Sequential(
-            normalization(self.out_channels),
+            normalization(self.out_channels, group_norm),
             SiLU(),
             nn.Dropout(p=dropout),
             zero_module(
