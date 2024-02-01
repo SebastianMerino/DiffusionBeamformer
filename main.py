@@ -1,5 +1,6 @@
 import torch
 import os
+from pathlib import Path
 from tqdm import tqdm
 import numpy as np
 from torch.utils.data import DataLoader
@@ -7,26 +8,26 @@ import guided_diffusion_v3 as gd
 from datetime import datetime
 import torch.nn.functional as func
 from model7 import UNETv13
-from model4 import UNETv10_5
+from model4 import UNETv10_5, UNETv10_5_2
 import torch.nn as nn
 
 def main():
     # network hyperparameters
     device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-    save_dir = r'.\weights\v10_imp'
+    save_dir = Path(os.getcwd())/'weights'/'v10_imp2'
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
     # training hyperparameters
     batch_size = 4  # 4 for testing, 16 for training
-    n_epoch = 10
+    n_epoch = 100
     l_rate = 1e-5  # changing from 1e-5 to 1e-6, new lr 1e-7
 
     # Loading Data
-    # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
-    # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
-    input_folder = r'C:\Users\u_imagenes\Documents\smerino\training\input'
-    output_folder = r'C:\Users\u_imagenes\Documents\smerino\training\target_enh'
+    input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
+    output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
+    # input_folder = r'C:\Users\u_imagenes\Documents\smerino\training\input'
+    # output_folder = r'C:\Users\u_imagenes\Documents\smerino\training\target_enh'
     dataset = gd.CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -46,17 +47,15 @@ def main():
     
     # Model and optimizer
     # nn_model = UNETv13(residual=False, attention_res=[], group_norm=False).to(device)
-    nn_model = UNETv10_5(emb_dim=64*4, improved=True).to(device)
-    print("Num params: ", sum(p.numel() for p in nn_model.parameters()))
-    # print("Num params: ", sum(p.numel() for p in nn_model.parameters() if p.requires_grad))
-    #size = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    nn_model = UNETv10_5_2(emb_dim=64*4).to(device)
+    print("Num params: ", sum(p.numel() for p in nn_model.parameters() if p.requires_grad))
 
     optim = torch.optim.Adam(nn_model.parameters(), lr=l_rate)
 
     trained_epochs = 0
     if trained_epochs > 0:
-        nn_model.load_state_dict(torch.load(f"{save_dir}\\model_{trained_epochs}.pth", map_location=device))  # From last model
-        loss_arr = np.load(f"{save_dir}\\loss_{trained_epochs}.npy").tolist()  # From last model
+        nn_model.load_state_dict(torch.load(save_dir/f"model_{trained_epochs}.pth", map_location=device))  # From last model
+        loss_arr = np.load(save_dir/f"loss_{trained_epochs}.npy").tolist()  # From last model
     else:
         loss_arr = []
 
@@ -89,9 +88,9 @@ def main():
 
         print(f' Epoch {ep:03}/{n_epoch}, loss: {loss_arr[-1]:.2f}, {datetime.now()}')
         # save model every x epochs
-        if ep % 5 == 0 or ep == int(n_epoch - 1):
-            torch.save(nn_model.state_dict(), save_dir + f"\\model_{ep}.pth")
-            np.save(save_dir + f"\\loss_{ep}.npy", np.array(loss_arr))
+        if ep % 5 == 0 or ep == int(n_epoch):
+            torch.save(nn_model.state_dict(), save_dir/f"model_{ep}.pth")
+            np.save(save_dir/f"loss_{ep}.npy", np.array(loss_arr))
 
 if __name__ == '__main__':
     main()
