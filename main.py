@@ -20,14 +20,14 @@ def main():
 
     # training hyperparameters
     batch_size = 4  # 4 for testing, 16 for training
-    n_epoch = 100
+    n_epoch = 10
     l_rate = 1e-5  # changing from 1e-5 to 1e-6, new lr 1e-7
 
     # Loading Data
-    input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
-    output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
-    # input_folder = r'C:\Users\u_imagenes\Documents\smerino\training\input'
-    # output_folder = r'C:\Users\u_imagenes\Documents\smerino\training\target_enh'
+    # input_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\input_overfit'
+    # output_folder = r'C:\Users\sebas\Documents\Data\DiffusionBeamformer\target_overfit'
+    input_folder = r'C:\Users\u_imagenes\Documents\smerino\training\input'
+    output_folder = r'C:\Users\u_imagenes\Documents\smerino\training\target_enh'
     dataset = gd.CustomDataset(input_folder, output_folder, transform=True)
     print(f'Dataset length: {len(dataset)}')
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
